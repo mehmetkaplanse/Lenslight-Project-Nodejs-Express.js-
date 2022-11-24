@@ -1,14 +1,30 @@
 import Photo from "../models/photoModel.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 
 const createPhoto = async (req,res) => {
+
+    const result = await cloudinary.uploader.upload(
+        req.files.image.tempFilePath,
+        {
+            use_filename: true,
+            folder: "lenslight_tr"
+        }
+    )
+
 
     try {
         await Photo.create({
             name: req.body.name,
             description: req.body.description,
-            user: res.locals.user._id
+            user: res.locals.user._id,
+            url: result.secure_url,
+            image_id: result.public_id
         });
+
+        fs.unlinkSync(req.files.image.tempFilePath);
+
         res.status(201).redirect("/users/dashboard");
     }
     catch(error) {
@@ -25,7 +41,9 @@ const createPhoto = async (req,res) => {
 const getAllPhotos = async (req,res) => {
 
     try {
-        const photos = await Photo.find();
+        const photos = res.locals.user
+            ? await Photo.find({user: {$ne: res.locals.user._id}})
+            : await Photo.find();
         res.status(200).render("photos", {
             photos: photos,
             link: "photos"
@@ -43,10 +61,18 @@ const getAllPhotos = async (req,res) => {
 const getAPhoto = async (req,res) => {
 
     try {
-        const photo = await Photo.findById({_id: req.params.id});
+        const photo = await Photo.findById({_id: req.params.id}).populate("user");
+        let isOwner = false;
+
+        if(res.locals.user) {
+            isOwner = photo.user.equals(res.locals.user._id);
+
+        }
+
         res.status(200).render("photo", {
             photo: photo,
-            link: "photos"
+            link: "photos",
+            isOwner
         });
     }
     catch(error) {
@@ -58,6 +84,60 @@ const getAPhoto = async (req,res) => {
 }
 
 
+const deletePhoto = async (req,res) => {
+
+    try {
+        const photo = await Photo.findByIdAndDelete({_id: req.params.id});
+        await cloudinary.uploader.destroy(photo.image_id);
+        res.status(200).redirect("/users/dashboard");
+    }
+    catch(error) {
+        res.status(500).json({
+            succeded: false,
+            error
+        });
+    }
+}
 
 
-export {createPhoto, getAllPhotos,getAPhoto}; 
+const updatePhoto = async (req,res) => {
+
+    try {
+        const photo = await Photo.findById(req.params.id);
+        if(req.files) {
+            const photoId = photo.image_id;
+            await cloudinary.uploader.destroy(photoId);
+
+            const result = await cloudinary.uploader.upload(
+                req.files.image.tempFilePath,
+                {
+                    use_filename: true,
+                    folder: "lenslight_tr"
+                }
+            )
+
+            photo.url = result.secure_url;
+            photo.image_id = result.public_id;
+
+            fs.unlinkSync(req.files.image.tempFilePath);
+        }
+
+        photo.name = req.body.name;
+        photo.description = req.body.description;
+
+        photo.save();
+
+        return res.status(200).redirect(`/photos/${photo._id}`);
+
+    }
+    catch(error) {
+        res.status(500).json({
+            succeded: false,
+            error
+        });
+    }
+}
+
+
+
+export {createPhoto, getAllPhotos,getAPhoto, deletePhoto, updatePhoto}; 

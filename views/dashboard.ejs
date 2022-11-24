@@ -17,12 +17,21 @@
           <div class="row">
             <div class="col-md-12">
               <div class="titlepage text_align_center">
-                <span>04</span>
                 <h2>Welcome <%= user.username %> </h2>
               </div>
             </div>
           </div>
           <div class="row">
+            <div class="col text_align_center">
+              <button data-bs-toggle="modal" data-bs-target="#followers" type="button"
+                style="margin-left: 70%; transform: translateX(-50%);" class="read_more">FOLLOWERS</button>
+            </div>
+            <div class="col text_align_center">
+              <button data-bs-toggle="modal" data-bs-target="#following" type="button"
+                style="margin-left: 20%; transform: translateX(-50%);" class="read_more">FOLLOWİNG</button>
+            </div>
+          </div>
+          <div class="row mt-5">
             <div class="col-md-12">
               <div class="satteb text_align_center">
                 <p>fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that itfact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that itfact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that itfact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it</p>
@@ -40,6 +49,8 @@
                 href="about.html">Add New Photo</button>
             </div>
           </div>
+         
+         
 
 
         </div>
@@ -53,7 +64,11 @@
                        <div class="titlepage text_align_center">
                           <span>03</span>
                           <h2>Our gallery</h2>
-                          <h4 style="margin-top: 10px;">Number of Photos (<%= photos.length %>)</h4>
+                          <% if (photos.length>0) { %>
+                            <h4 style="margin-top: 10px;">Your Photos (<%= photos.length %>)</h4>
+                         <%} else { %>
+                            <h4 style="margin-top: 10px;">There is no photo.<h4>
+                         <% } %>
                        </div>
                     </div>
                  </div>
@@ -62,10 +77,10 @@
                              <% for( photo of photos) { %>
                                 <div class="col-lg-4 col-md-6 ma_bottom30">
                                    <div class="lightbox">
-                                      <img src="images/g1.jpg" alt="Bridge">
+                                      <img src="<%= photo.url %>" alt="<%= photo.name %>">
                                       <div class="view_main">
                                         <div class="pose">
-                                        <a class="read_more" href="/photos/<%= photo._id %>"><img src="images/ga.png" alt="#"/></a>
+                                        <a class="read_more" href="/photos/<%= photo._id %>"><img src="/images/ga.png" alt="#"/></a>
                                          <h3 style="padding-top: 10px; padding-bottom: 10px;"><%= photo.name %> </h3>
                                          <p style="padding-top: 10px;"><%= photo.description.substring(0, 80)+ "..."  %> </p>
                                       </div>
@@ -74,9 +89,6 @@
                                 </div>
                              <% } %>
                           
-                       <div class="col-md-12">
-                         <a class="plus_btn" href="gallery.html">+</a>
-                       </div>
                     </div>
                  </div>
               </div>
@@ -107,7 +119,7 @@
                 </div>
               </div>
               <div class="col-md-10 offset-md-1">
-                <form id="request" class="main_form" method="POST" action="/photos">
+                <form id="request" class="main_form" method="POST" action="/photos" enctype="multipart/form-data">
                   <div class="row">
                     <div class="col-md-12">
                       <input class="form_control" placeholder="Name" type="text" name="name">
@@ -118,7 +130,7 @@
                     </div>
 
                     <div style="margin-bottom: 20px ;" class="col-md-12">
-                      <input type="file" class="form-control-file">
+                      <input type="file" name="image" class="form-control-file">
                     </div>
 
                     <div class="col-md-12">
@@ -135,8 +147,46 @@
       </div>
     </div>
 
+    <!-- modal-2 -->
+    <div class="modal" id="followers">
+      <div class="modal-dialog modalCenter">
+        <div class="modal-content">
+          <div class="modal-header"><h3>Followers (<%= user.followers.length %>)</h3></div>
+          <div class="modal-body">
+            <ul class="list-group">
+              <% user.followers.forEach(follower => { %>
+               <li class="list-group-item text-center"><a href="/users/<%= follower._id %>"><%= follower.username %></a></li>
+              <% }) %>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- modal-3 -->
+    <div class="modal" id="following">
+      <div class="modal-dialog modalCenter">
+        <div class="modal-content">
+          <div class="modal-header"><h3>Following (<%= user.followings.length %>)</h3></div>
+          <div class="modal-body">
+            <ul class="list-group">
+              <% user.followings.forEach(following => { %>
+                <li class="list-group-item text-center"><a href="/users/<%= following._id %>"><%= following.username %></a></li>
+              <% }) %>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
 
       <!-- end footer -->
       <%- include("partials/_footer")  %> 
+    

@@ -22,6 +22,9 @@
               </div>
               <div class="col-md-8 offset-md-2">
                 <form id="request" class="main_form" action="users/login" method="post">
+                  <div class="col-md-12">
+                    <div style="display: none;" class="alert alert-danger" id="sendMessage"></div>
+                  </div>
                   <div class="row">
                     <div class="col-md-12">
                       <input class="form_control" placeholder="Username" type="text" name="username"> 
@@ -41,5 +44,9 @@
           </div>
         </div>
       <!-- end contact -->
+
+     
+
+
       <!-- end footer -->
       <%- include("partials/_footer")  %> 
